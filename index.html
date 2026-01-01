@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة التصاريح البيئية</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    .stats-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 2px solid #f1f5f9;
+    }
+
+    .stats-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.1);
+      border-color: #3b82f6;
+    }
+
+    .stats-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-input {
+      padding: 14px 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .search-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .modern-button {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .modern-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+    }
+
+    .modern-button:active {
+      transform: translateY(0);
+    }
+
+    .modern-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .modern-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .modern-table thead tr {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .modern-table th {
+      padding: 18px 16px;
+      text-align: right;
+      font-weight: 700;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modern-table td {
+      padding: 20px 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .modern-table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .modern-table tbody tr:hover {
+      background: #f8fafc;
+      transform: scale(1.005);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .status-active {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      border: 2px solid #10b981;
+    }
+
+    .status-pending {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      border: 2px solid #f59e0b;
+    }
+
+    .date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .date-expired {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+
+    .date-warning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      border: 2px solid #f59e0b;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .link-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90%;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #334155;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: 'Tajawal', Arial, sans-serif;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      z-index: 2000;
+      animation: toastSlideIn 0.3s ease;
+      max-width: 400px;
+    }
+
+    @keyframes toastSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .toast-error {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .icon-button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .delete-confirm {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+      border-radius: 16px;
+      margin: 20px 0;
+    }
+
+    .load-data-button {
+      padding: 16px 32px;
+      font-size: 18px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
+    }
+
+    .load-data-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -4px rgba(16, 185, 129, 0.4);
+    }
+
+    .load-data-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .card-header {
+        padding: 20px;
+      }
+
+      .stats-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+
+      .modern-table {
+        font-size: 13px;
+      }
+
+      .modern-table th,
+      .modern-table td {
+        padding: 12px 8px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: "#f0f4f8",
+      surface_color: "#ffffff",
+      text_color: "#1e293b",
+      primary_action_color: "#3b82f6",
+      secondary_action_color: "#10b981",
+      font_family: "Tajawal",
+      font_size: 16,
+      system_title: "نظام إدارة التصاريح البيئية",
+      search_placeholder: "ابحث بالمنطقة، اسم المشروع، أو رقم الكود...",
+      header_number: "#",
+      header_region: "المنطقة",
+      header_project: "اسم المشروع",
+      header_code: "الكود",
+      header_request_number: "رقم الطلب",
+      header_status: "الحالة",
+      header_issue_date: "تاريخ الإصدار",
+      header_expiry_date: "تاريخ الانتهاء",
+      header_document: "المستند",
+      filter_all: "الكل",
+      status_active: "سارية",
+      button_add: "إضافة تصريح جديد",
+      button_edit: "تعديل",
+      button_delete: "حذف",
+      button_save: "حفظ",
+      button_cancel: "إلغاء"
+    };
+
+    let config = { ...defaultConfig };
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let allProjects = [];
+    let showModal = false;
+    let editingProject = null;
+    let deleteConfirmId = null;
+    let isLoading = false;
+    let isLoadingInitialData = false;
+
+    const initialProjects = [
+      { id: "1", region: "بريدة (شرق)", name: "القاع البارد شرق مدينة بريدة - عقد رقم (1)", code: "1379", request_number: "EPC2-2025-006274", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%B4%D8%B1%D9%82%20%D8%A8%D8%B1%D9%8A%D8%AF%D8%A9%20%D8%B9%D9%82%D8%AF%20%D8%B1%D9%82%D9%85%20-1%20%201379.pdf?csf=1&web=1&e=SBMFqD", issue_date: "2025-11-04", expiry_date: "2028-11-04", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "2", region: "بريدة", name: "حي (الرحاب 1 - السلمان - الناصرية - واسط - الحمر)", code: "1381", request_number: "EPC2-2025-006297", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D9%85%D8%AA%D9%81%D8%B1%D9%82%D8%A9%20%D8%A8%D9%85%D8%AF%D9%8A%D9%86%D8%A9%20%D8%A8%D8%B1%D9%8A%D8%AF%D8%A9%201381.pdf?csf=1&web=1&e=Lpq1bp", issue_date: "2025-10-28", expiry_date: "2028-10-28", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "3", region: "بريدة (شرق)", name: "حي النفل شرق مدينة بريدة - عقد رقم (2)", code: "1382", request_number: "EPC2-2025-006287", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%B4%D8%B1%D9%82%20%D9%85%D8%AF%D9%8A%D9%86%D8%A9%20%D8%A8%D8%B1%D9%8A%D8%AF%D8%A9%20-%20%D8%B9%D9%82%D8%AF%20%D8%B1%D9%82%D9%85%202%201382.pdf?csf=1&web=1&e=orTcPd", issue_date: "2025-11-04", expiry_date: "2028-11-04", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "4", region: "الرس", name: "حي (الإسكان - السلام - الفيصلية - الحمراء)", code: "1334", request_number: "EPC2-2025-006273", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/1334%20%D8%A8%D8%B9%D8%B6%20%D8%A3%D8%AD%D9%8A%D8%A7%D8%A1%20%D9%85%D8%AD%D8%A7%D9%81%D8%B8%D8%A9%20%D8%A7%D9%84%D8%B1%D8%B3.pdf?csf=1&web=1&e=YJXkHs", issue_date: "2025-11-04", expiry_date: "2028-11-04", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "5", region: "عيون الجواء", name: "حي (الجردة - النهضة - النزهة - التعليم - المرقب - الخزان - المنتزة) - مرحلة أولى", code: "1343", request_number: "EPC3-2025-000807", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/1343%20%D8%B9%D9%8A%D9%88%D9%86%20%D8%A7%D9%84%D8%AC%D9%88%D8%A7%D8%A1%20%D9%85%D8%B1%D8%AD%D9%84%D8%A9%20%D8%A3%D9%88%D9%84%D9%89.pdf?csf=1&web=1&e=UEdFKx", issue_date: "2025-08-12", expiry_date: "2028-08-12", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "6", region: "عيون الجواء", name: "حي (الجردة - الاسكان) - مرحلة ثانية", code: "1344", request_number: "EPC2-2025-004354", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D9%85%D8%AD%D8%A7%D9%81%D8%B8%D8%A9%20%D8%B9%D9%8A%D9%88%D9%86%20%D8%A7%D9%84%D8%AC%D9%88%D8%A7%D8%A1-%20%D9%85%D8%B1%D8%AD%D9%84%D8%A9%20%D8%AB%D8%A7%D9%86%D9%8A%D8%A9%201344.pdf?csf=1&web=1&e=lRoRUj", issue_date: "2025-11-04", expiry_date: "2028-11-04", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "7", region: "حائل", name: "حي (الجثامية - النيصية - اللقيطة - مفاتيح العلوم) - عقد رقم (1)", code: "A7", request_number: "EPC2-2025-006290", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%A7%D9%84%D8%AA%D8%B5%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D9%8A%D9%94%D9%8A%20%D8%B4%D8%B1%D9%83%D8%A9%20%D8%A7%D9%84%D9%85%D9%8A%D8%A7%D9%87%20%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A%D8%A9%20(%20%D8%A7%D9%84%D8%AC%D8%AB%D8%A7%D9%85%D9%8A%D8%A9%20)%20A7.pdf?csf=1&web=1&e=IInYky", issue_date: "2025-11-10", expiry_date: "2028-11-10", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "8", region: "الغزالة", name: "الغزالة - عقد رقم (2)", code: "454", request_number: "EPC2-2025-006271", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D9%85%D8%AD%D8%A7%D9%81%D8%B8%D8%A9%20%D8%A7%D9%84%D8%BA%D8%B2%D8%A7%D9%84%D8%A9%20%D8%B9%D9%82%D8%AF%20%D8%B1%D9%82%D9%85%20%20(2)%20454.pdf?csf=1&web=1&e=kJUcdI", issue_date: "2025-10-29", expiry_date: "2028-10-29", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "9", region: "رفحاء", name: "حي الورود - المرحلة الرابعة", code: "1285", request_number: "EPC3-2025-000720", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D9%85%D8%AF%D9%8A%D9%86%D8%A9%20%D8%B1%D9%81%D8%AD%D8%A7%D8%A1%20(%D8%A7%D9%84%D9%85%D8%B1%D8%AD%D9%84%D8%A9%20%D8%A7%D9%84%D8%B1%D8%A7%D8%A8%D8%B9%D8%A9)%20-%D9%83%D9%88%D8%AF%201285.pdf?csf=1&web=1&e=TdPU5R", issue_date: "2025-07-15", expiry_date: "2028-07-15", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "10", region: "حائل", name: "مخطط المدائن - عقد رقم (1)", code: "455", request_number: "EPC2-2025-006276", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%A7%D9%84%D8%AA%D8%B5%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D9%8A%D9%94%D9%8A%20%D8%B4%D8%B1%D9%83%D8%A9%20%D8%A7%D9%84%D9%85%D9%8A%D8%A7%D9%87%20%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A%D8%A9%20%D8%AD%D8%A7%D9%8A%D9%94%D9%84%20%D9%85%D8%AE%D8%B7%D8%B7%20%D8%A7%D9%84%D9%85%D8%AF%D8%A7%D9%8A%D9%94%D9%86%201.pdf?csf=1&web=1&e=Qzhk24", issue_date: "2025-12-01", expiry_date: "2028-12-01", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "11", region: "حائل", name: "مخطط المدائن - عقد رقم (3)", code: "470", request_number: "EPC2-2025-006379", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%A7%D9%84%D8%AA%D8%B5%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D9%8A%D9%94%D9%8A%20%D8%B4%D8%B1%D9%83%D8%A9%20%D8%A7%D9%84%D9%85%D9%8A%D8%A7%D9%87%20%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A%D8%A9%20%D8%AD%D8%A7%D9%8A%D9%94%D9%84%20%D9%85%D8%AE%D8%B7%D8%B7%20%D8%A7%D9%84%D9%85%D8%AF%D8%A7%D9%8A%D9%94%D9%86%203.pdf?csf=1&web=1&e=hmJonT", issue_date: "2025-12-01", expiry_date: "2028-12-01", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "12", region: "حائل", name: "مخطط المدائن - عقد رقم (2)", code: "471", request_number: "EPC2-2025-006378", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%A7%D8%A7%D9%84%D8%AA%D8%B5%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D9%94%D9%8A%D9%8A%20%D8%B4%D8%B1%D9%83%D8%A9%20%D8%A7%D9%84%D9%85%D9%8A%D8%A7%D9%87%20%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A%D8%A9%20%D8%AD%D8%A7%D9%8A%D9%94%D9%84%20%D9%85%D8%AE%D8%B7%D8%B7%20%D8%A7%D9%84%D9%85%D8%AF%D8%A7%D9%8A%D9%94%D9%86%202.pdf?csf=1&web=1&e=87uqob", issue_date: "2025-12-01", expiry_date: "2028-12-01", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "13", region: "حائل", name: "ضاحية الملك فهد - عقد رقم (2)", code: "456", request_number: "EPC2-2025-006383", status: "سارية", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9/%D8%A7%D9%84%D8%AA%D8%B5%D8%A7%D8%B1%D9%8A%D8%AD%20%D8%A7%D9%84%D8%A8%D9%8A%D8%A6%D9%8A%D8%A9%20%D9%84%D9%85%D8%B4%D8%A7%D8%B1%D9%8A%D8%B9%20%D8%A7%D9%84%D8%AA%D9%86%D9%81%D9%8A%D8%B0/%D8%AA%D8%B5%D8%B1%D9%8A%D8%AD%20%D8%A8%D9%8A%D9%8A%D9%94%D9%8A%20%D9%85%D8%AE%D8%B7%D8%B7%20%D8%B6%D8%A7%D8%AD%D9%8A%D8%A9%20%D8%A7%D9%84%D9%85%D9%84%D9%83%20%D9%81%D9%87%D8%AF%20%D8%AD%D8%A7%D9%8A%D9%94%D9%84%20%D8%B9%D9%82%D8%AF%20%D8%B1%D9%82%D9%85%20456.pdf?csf=1&web=1&e=aacpgW", issue_date: "2025-12-14", expiry_date: "2028-12-14", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "14", region: "عنيزة", name: "مرحلة ثانية", code: "1347", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "15", region: "رياض الخبراء", name: "حي طيبة وبعض أجزاء حي الخندق", code: "1349", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "16", region: "رياض الخبراء", name: "حي الاندلس، حي الفلاح، حي الخندق", code: "1350", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "17", region: "بريدة (شرق)", name: "ضخ شرق مدينة بريدة – عقد رقم (3)", code: "1383", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "18", region: "القصيم", name: "أحياء ومحافظات منطقة القصيم", code: "A11", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "19", region: "الجوف - سكاكا", name: "مرحلة الثامنة", code: "585", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "20", region: "بريدة", name: "حويلان - المريدسية - العريمضي", code: "1385", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "21", region: "الاسياح", name: "محافظة الاسياح - مرحلة أولى", code: "1342", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "22", region: "الاسياح", name: "محافظة الاسياح - مرحلة ثانية", code: "1346", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "23", region: "الرس", name: "محافظة الرس - مرحلة ثانية", code: "1353", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "24", region: "الرس", name: "جنوب محافظة الرس", code: "1354", request_number: "", status: "لم يصدر", link: "", issue_date: "", expiry_date: "", created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+    ];
+
+    const dataHandler = {
+      onDataChanged(data) {
+        allProjects = data;
+        renderApp();
+      }
+    };
+
+    async function loadInitialData() {
+      if (isLoadingInitialData) return;
+      
+      isLoadingInitialData = true;
+      renderApp();
+
+      showToast('جاري تحميل التصاريح...', 'success');
+      
+      let successCount = 0;
+      for (const project of initialProjects) {
+        const result = await window.dataSdk.create(project);
+        if (result.isOk) {
+          successCount++;
+        } else {
+          console.error("Failed to add project:", project.name);
+        }
+      }
+      
+      isLoadingInitialData = false;
+      
+      if (successCount > 0) {
+        showToast(`تم تحميل ${successCount} تصريح بنجاح! ✅`, 'success');
+      } else {
+        showToast('حدث خطأ أثناء التحميل', 'error');
+      }
+    }
+
+    function getFilteredProjects() {
+      let filtered = allProjects;
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(p => p.status === currentFilter);
+      }
+
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(p => 
+          p.region.toLowerCase().includes(query) ||
+          p.name.toLowerCase().includes(query) ||
+          p.code.toLowerCase().includes(query) ||
+          (p.request_number && p.request_number.toLowerCase().includes(query))
+        );
+      }
+
+      return filtered;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return date.toLocaleDateString('ar-SA', options);
+    }
+
+    function getDateStatus(expiryDateString) {
+      if (!expiryDateString) return '';
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const expiryDate = new Date(expiryDateString);
+      expiryDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = expiryDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) {
+        return 'expired';
+      } else if (diffDays <= 90) {
+        return 'warning';
+      }
+      return 'valid';
+    }
+
+    function getCurrentDate() {
+      const now = new Date();
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+      };
+      return now.toLocaleDateString('ar-SA', options);
+    }
+
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    async function handleAddProject() {
+      if (allProjects.length >= 999) {
+        showToast('تم الوصول للحد الأقصى (999 تصريح)', 'error');
+        return;
+      }
+      editingProject = null;
+      showModal = true;
+      renderApp();
+    }
+
+    async function handleEditProject(project) {
+      editingProject = project;
+      showModal = true;
+      renderApp();
+    }
+
+    async function handleDeleteProject(project) {
+      if (deleteConfirmId === project.__backendId) {
+        isLoading = true;
+        renderApp();
+
+        const result = await window.dataSdk.delete(project);
+        
+        isLoading = false;
+        deleteConfirmId = null;
+
+        if (result.isOk) {
+          showToast('تم حذف التصريح بنجاح', 'success');
+        } else {
+          showToast('حدث خطأ أثناء الحذف', 'error');
+        }
+        renderApp();
+      } else {
+        deleteConfirmId = project.__backendId;
+        renderApp();
+      }
+    }
+
+    function handleCancelDelete() {
+      deleteConfirmId = null;
+      renderApp();
+    }
+
+    async function handleSubmitForm(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(event.target);
+      const projectData = {
+        id: formData.get('id'),
+        region: formData.get('region'),
+        name: formData.get('name'),
+        code: formData.get('code'),
+        request_number: formData.get('request_number'),
+        status: formData.get('status'),
+        link: formData.get('link'),
+        issue_date: formData.get('issue_date'),
+        expiry_date: formData.get('expiry_date'),
+        updated_at: new Date().toISOString()
+      };
+
+      isLoading = true;
+      renderApp();
+
+      let result;
+      if (editingProject) {
+        result = await window.dataSdk.update({
+          ...editingProject,
+          ...projectData
+        });
+      } else {
+        result = await window.dataSdk.create({
+          ...projectData,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      isLoading = false;
+
+      if (result.isOk) {
+        showModal = false;
+        editingProject = null;
+        showToast(editingProject ? 'تم تحديث التصريح بنجاح' : 'تم إضافة التصريح بنجاح', 'success');
+      } else {
+        showToast('حدث خطأ أثناء الحفظ', 'error');
+      }
+      
+      renderApp();
+    }
+
+    function handleCloseModal() {
+      showModal = false;
+      editingProject = null;
+      renderApp();
+    }
+
+    function renderApp() {
+      const app = document.getElementById('app');
+      const baseFontSize = config.font_size || defaultConfig.font_size;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'Tajawal, Arial, sans-serif';
+      const displayFont = `${customFont}, ${baseFontStack}`;
+      
+      const filteredProjects = getFilteredProjects();
+      const totalProjects = allProjects.length;
+      const activeProjects = allProjects.filter(p => p.status === (config.status_active || defaultConfig.status_active)).length;
+      const pendingProjects = allProjects.filter(p => p.status === 'لم يصدر').length;
+
+      app.innerHTML = `
+        <div class="w-full h-full" style="background: ${config.background_color || defaultConfig.background_color}; padding: ${baseFontSize * 2}px; font-family: ${displayFont}; overflow-y: auto;">
+          <div style="max-width: 1600px; margin: 0 auto;">
+          
+            <!-- Modern Header Card -->
+            <div class="card" style="margin-bottom: ${baseFontSize * 2}px;">
+              <div class="card-header">
+                <div style="position: relative; z-index: 1;">
+                  <h1 style="font-size: ${baseFontSize * 2.5}px; font-weight: 800; margin: 0 0 ${baseFontSize * 0.5}px 0; color: #ffffff;">
+                    ${config.system_title || defaultConfig.system_title}
+                  </h1>
+                  <div style="display: flex; align-items: center; gap: ${baseFontSize}px; font-size: ${baseFontSize * 0.95}px; color: rgba(255,255,255,0.9);">
+                    <span>📅 ${getCurrentDate()}</span>
+                    <span>•</span>
+                    <span>🕐 ${getCurrentTime()}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Stats Cards Grid -->
+              <div style="padding: ${baseFontSize * 2}px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: ${baseFontSize * 1.5}px;">
+                <div class="stats-card">
+                  <div class="stats-icon" style="background: linear-gradient(135deg, ${config.primary_action_color || defaultConfig.primary_action_color} 0%, #2563eb 100%);">
+                    📊
+                  </div>
+                  <div style="font-size: ${baseFontSize * 0.9}px; color: #64748b; margin-bottom: ${baseFontSize * 0.5}px; font-weight: 600;">
+                    إجمالي المشاريع
+                  </div>
+                  <div style="font-size: ${baseFontSize * 2.5}px; font-weight: 800; color: ${config.primary_action_color || defaultConfig.primary_action_color};">
+                    ${totalProjects}
+                  </div>
+                </div>
+                
+                <div class="stats-card">
+                  <div class="stats-icon" style="background: linear-gradient(135deg, ${config.secondary_action_color || defaultConfig.secondary_action_color} 0%, #059669 100%);">
+                    ✅
+                  </div>
+                  <div style="font-size: ${baseFontSize * 0.9}px; color: #64748b; margin-bottom: ${baseFontSize * 0.5}px; font-weight: 600;">
+                    التصاريح السارية
+                  </div>
+                  <div style="font-size: ${baseFontSize * 2.5}px; font-weight: 800; color: ${config.secondary_action_color || defaultConfig.secondary_action_color};">
+                    ${activeProjects}
+                  </div>
+                </div>
+                
+                <div class="stats-card">
+                  <div class="stats-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    ⏳
+                  </div>
+                  <div style="font-size: ${baseFontSize * 0.9}px; color: #64748b; margin-bottom: ${baseFontSize * 0.5}px; font-weight: 600;">
+                    قيد الانتظار
+                  </div>
+                  <div style="font-size: ${baseFontSize * 2.5}px; font-weight: 800; color: #f59e0b;">
+                    ${pendingProjects}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            ${totalProjects === 0 ? `
+              <!-- Empty State with Load Button -->
+              <div class="empty-state">
+                <div style="font-size: ${baseFontSize * 4}px; margin-bottom: ${baseFontSize * 1.5}px;">📋</div>
+                <h2 style="font-size: ${baseFontSize * 1.8}px; font-weight: 700; color: ${config.text_color || defaultConfig.text_color}; margin-bottom: ${baseFontSize}px;">
+                  مرحباً بك في نظام التصاريح البيئية!
+                </h2>
+                <p style="font-size: ${baseFontSize * 1.1}px; color: #64748b; margin-bottom: ${baseFontSize * 2}px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                  قاعدة البيانات فارغة حالياً. اضغط الزر أدناه لتحميل جميع التصاريح البيئية (24 تصريح).
+                </p>
+                <button 
+                  onclick="loadInitialData()" 
+                  class="load-data-button"
+                  ${isLoadingInitialData ? 'disabled' : ''}
+                  style="font-family: ${displayFont};"
+                >
+                  ${isLoadingInitialData ? '<span class="loading-spinner"></span> جاري التحميل...' : '📥 تحميل جميع التصاريح (24 تصريح)'}
+                </button>
+                <p style="font-size: ${baseFontSize * 0.85}px; color: #94a3b8; margin-top: ${baseFontSize * 1.5}px;">
+                  سيتم تحميل 13 تصريح ساري + 11 تصريح قيد الانتظار
+                </p>
+              </div>
+            ` : `
+              <!-- Search and Filter Section -->
+              <div class="card" style="margin-bottom: ${baseFontSize * 2}px;">
+                <div style="padding: ${baseFontSize * 1.5}px ${baseFontSize * 2}px;">
+                  <div style="display: flex; gap: ${baseFontSize}px; align-items: center; flex-wrap: wrap; margin-bottom: ${baseFontSize * 1.5}px;">
+                    <div style="flex: 1; min-width: 300px;">
+                      <input 
+                        type="text" 
+                        id="search-input"
+                        class="search-input"
+                        placeholder="${config.search_placeholder || defaultConfig.search_placeholder}"
+                        style="width: 100%; font-size: ${baseFontSize}px; font-family: ${displayFont}; color: ${config.text_color || defaultConfig.text_color};"
+                        value="${searchQuery}"
+                      />
+                    </div>
+                    
+                    <button 
+                      onclick="handleAddProject()"
+                      class="modern-button"
+                      style="background: linear-gradient(135deg, ${config.secondary_action_color || defaultConfig.secondary_action_color} 0%, #059669 100%); color: #ffffff; font-size: ${baseFontSize * 0.95}px; font-family: ${displayFont};"
+                    >
+                      ➕ ${config.button_add || defaultConfig.button_add}
+                    </button>
+                  </div>
+                  
+                  <div style="display: flex; gap: ${baseFontSize * 0.75}px; flex-wrap: wrap;">
+                    <button 
+                      onclick="setFilter('all')"
+                      class="modern-button ${currentFilter === 'all' ? 'active' : ''}"
+                      style="background: ${currentFilter === 'all' ? `linear-gradient(135deg, ${config.primary_action_color || defaultConfig.primary_action_color} 0%, #2563eb 100%)` : config.surface_color || defaultConfig.surface_color}; color: ${currentFilter === 'all' ? '#ffffff' : config.text_color || defaultConfig.text_color}; border: 2px solid ${currentFilter === 'all' ? config.primary_action_color || defaultConfig.primary_action_color : '#e2e8f0'}; font-size: ${baseFontSize * 0.9}px; font-family: ${displayFont};"
+                    >
+                      ${config.filter_all || defaultConfig.filter_all} (${totalProjects})
+                    </button>
+                    
+                    <button 
+                      onclick="setFilter('${config.status_active || defaultConfig.status_active}')"
+                      class="modern-button ${currentFilter === (config.status_active || defaultConfig.status_active) ? 'active' : ''}"
+                      style="background: ${currentFilter === (config.status_active || defaultConfig.status_active) ? `linear-gradient(135deg, ${config.secondary_action_color || defaultConfig.secondary_action_color} 0%, #059669 100%)` : config.surface_color || defaultConfig.surface_color}; color: ${currentFilter === (config.status_active || defaultConfig.status_active) ? '#ffffff' : config.text_color || defaultConfig.text_color}; border: 2px solid ${currentFilter === (config.status_active || defaultConfig.status_active) ? config.secondary_action_color || defaultConfig.secondary_action_color : '#e2e8f0'}; font-size: ${baseFontSize * 0.9}px; font-family: ${displayFont};"
+                    >
+                      ${config.status_active || defaultConfig.status_active} (${activeProjects})
+                    </button>
+                    
+                    <button 
+                      onclick="setFilter('لم يصدر')"
+                      class="modern-button ${currentFilter === 'لم يصدر' ? 'active' : ''}"
+                      style="background: ${currentFilter === 'لم يصدر' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : config.surface_color || defaultConfig.surface_color}; color: ${currentFilter === 'لم يصدر' ? '#ffffff' : config.text_color || defaultConfig.text_color}; border: 2px solid ${currentFilter === 'لم يصدر' ? '#f59e0b' : '#e2e8f0'}; font-size: ${baseFontSize * 0.9}px; font-family: ${displayFont};"
+                    >
+                      لم يصدر (${pendingProjects})
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modern Table Card -->
+              <div class="card">
+                <div style="overflow-x: auto;">
+                  <table class="modern-table" style="font-size: ${baseFontSize * 0.95}px;">
+                    <thead>
+                      <tr>
+                        <th style="width: 50px; font-size: ${baseFontSize * 0.85}px;">${config.header_number || defaultConfig.header_number}</th>
+                        <th style="width: 130px; font-size: ${baseFontSize * 0.85}px;">${config.header_region || defaultConfig.header_region}</th>
+                        <th style="font-size: ${baseFontSize * 0.85}px;">${config.header_project || defaultConfig.header_project}</th>
+                        <th style="width: 100px; font-size: ${baseFontSize * 0.85}px;">${config.header_code || defaultConfig.header_code}</th>
+                        <th style="width: 110px; text-align: center; font-size: ${baseFontSize * 0.85}px;">${config.header_request_number || defaultConfig.header_request_number}</th>
+                        <th style="width: 120px; text-align: center; font-size: ${baseFontSize * 0.85}px;">${config.header_status || defaultConfig.header_status}</th>
+                        <th style="width: 130px; text-align: center; font-size: ${baseFontSize * 0.85}px;">${config.header_issue_date || defaultConfig.header_issue_date}</th>
+                        <th style="width: 130px; text-align: center; font-size: ${baseFontSize * 0.85}px;">${config.header_expiry_date || defaultConfig.header_expiry_date}</th>
+                        <th style="width: 130px; text-align: center; font-size: ${baseFontSize * 0.85}px;">${config.header_document || defaultConfig.header_document}</th>
+                        <th style="width: 180px; text-align: center; font-size: ${baseFontSize * 0.85}px;">الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${filteredProjects.length === 0 ? `
+                        <tr>
+                          <td colspan="10" style="text-align: center; padding: ${baseFontSize * 4}px; color: #94a3b8;">
+                            <div style="font-size: ${baseFontSize * 3}px; margin-bottom: ${baseFontSize}px;">🔍</div>
+                            <div style="font-size: ${baseFontSize * 1.2}px; font-weight: 600;">لا توجد نتائج</div>
+                            <div style="font-size: ${baseFontSize * 0.9}px; margin-top: ${baseFontSize * 0.5}px;">جرب البحث بكلمات مختلفة</div>
+                          </td>
+                        </tr>
+                      ` : filteredProjects.map((project, index) => {
+                        const dateStatus = getDateStatus(project.expiry_date);
+                        return `
+                        <tr>
+                          <td style="font-weight: 700; text-align: center; color: ${config.primary_action_color || defaultConfig.primary_action_color};">${index + 1}</td>
+                          <td style="font-weight: 600;">
+                            <div style="color: ${config.text_color || defaultConfig.text_color};">${project.region}</div>
+                          </td>
+                          <td style="line-height: 1.6; color: ${config.text_color || defaultConfig.text_color};">
+                            ${project.name}
+                          </td>
+                          <td style="text-align: center;">
+                            <span style="background: #f1f5f9; padding: ${baseFontSize * 0.4}px ${baseFontSize * 0.8}px; border-radius: 6px; font-weight: 700; font-family: monospace; color: ${config.primary_action_color || defaultConfig.primary_action_color};">
+                              ${project.code}
+                            </span>
+                          </td>
+                          <td style="text-align: center;">
+                            ${project.request_number ? `
+                              <span style="background: #e0f2fe; padding: ${baseFontSize * 0.4}px ${baseFontSize * 0.8}px; border-radius: 6px; font-weight: 600; color: #0369a1;">
+                                ${project.request_number}
+                              </span>
+                            ` : `<span style="color: #94a3b8; font-size: ${baseFontSize * 0.85}px;">-</span>`}
+                          </td>
+                          <td style="text-align: center;">
+                            <span class="status-badge ${project.status === (config.status_active || defaultConfig.status_active) ? 'status-active' : 'status-pending'}">
+                              ${project.status === (config.status_active || defaultConfig.status_active) ? '✓' : '⏳'} ${project.status}
+                            </span>
+                          </td>
+                          <td style="text-align: center;">
+                            <span class="date-badge">
+                              ${project.issue_date ? '📅 ' + formatDate(project.issue_date) : '-'}
+                            </span>
+                          </td>
+                          <td style="text-align: center;">
+                            <span class="date-badge ${dateStatus === 'expired' ? 'date-expired' : dateStatus === 'warning' ? 'date-warning' : ''}">
+                              ${project.expiry_date ? (dateStatus === 'expired' ? '⚠️ ' : dateStatus === 'warning' ? '⏰ ' : '📅 ') + formatDate(project.expiry_date) : '-'}
+                            </span>
+                          </td>
+                          <td style="text-align: center;">
+                            ${project.link ? `
+                              <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="link-button" style="background: linear-gradient(135deg, ${config.primary_action_color || defaultConfig.primary_action_color} 0%, #2563eb 100%); color: #ffffff; font-family: ${displayFont}; font-size: ${baseFontSize * 0.85}px;">
+                                <span>عرض</span>
+                                <span>↗</span>
+                              </a>
+                            ` : `
+                              <span style="color: #94a3b8; font-size: ${baseFontSize * 0.85}px; font-style: italic;">قيد الإضافة</span>
+                            `}
+                          </td>
+                          <td style="text-align: center;">
+                            ${deleteConfirmId === project.__backendId ? `
+                              <div class="delete-confirm">
+                                <button onclick="handleDeleteProject(${JSON.stringify(project).replace(/"/g, '&quot;')})" class="icon-button" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                  ${isLoading ? '<span class="loading-spinner"></span>' : 'تأكيد الحذف'}
+                                </button>
+                                <button onclick="handleCancelDelete()" class="icon-button" style="background: #e2e8f0; color: ${config.text_color || defaultConfig.text_color}; font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                  إلغاء
+                                </button>
+                              </div>
+                            ` : `
+                              <div class="action-buttons">
+                                <button onclick='handleEditProject(${JSON.stringify(project).replace(/'/g, "\\'")})' class="icon-button btn-edit" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                  ✏️ ${config.button_edit || defaultConfig.button_edit}
+                                </button>
+                                <button onclick='handleDeleteProject(${JSON.stringify(project).replace(/'/g, "\\'")})'  class="icon-button btn-delete" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                  🗑️ ${config.button_delete || defaultConfig.button_delete}
+                                </button>
+                              </div>
+                            `}
+                          </td>
+                        </tr>
+                      `;}).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <!-- Footer Summary -->
+                <div style="padding: ${baseFontSize * 1.5}px ${baseFontSize * 2}px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: ${baseFontSize}px;">
+                    <div style="font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseFontSize * 0.95}px;">
+                      عرض <span style="color: ${config.primary_action_color || defaultConfig.primary_action_color}; font-weight: 800;">${filteredProjects.length}</span> من أصل <span style="font-weight: 800;">${totalProjects}</span> مشروع
+                    </div>
+                    <div style="font-size: ${baseFontSize * 0.85}px; color: #64748b;">
+                      آخر تحديث: ${getCurrentTime()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `}
+
+          </div>
+        </div>
+
+        ${showModal ? `
+          <div class="modal-overlay" onclick="if(event.target === this) handleCloseModal()">
+            <div class="modal-content" style="font-family: ${displayFont};">
+              <div style="background: linear-gradient(135deg, ${config.primary_action_color || defaultConfig.primary_action_color} 0%, #2563eb 100%); padding: ${baseFontSize * 1.5}px ${baseFontSize * 2}px; border-radius: 20px 20px 0 0;">
+                <h2 style="font-size: ${baseFontSize * 1.5}px; font-weight: 700; color: white; margin: 0;">
+                  ${editingProject ? '✏️ تعديل التصريح' : '➕ إضافة تصريح جديد'}
+                </h2>
+              </div>
+              
+              <form onsubmit="handleSubmitForm(event); return false;" style="padding: ${baseFontSize * 2}px;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">رقم المعرّف</label>
+                  <input type="text" name="id" class="form-input" value="${editingProject ? editingProject.id : ''}" required ${editingProject ? 'readonly' : ''} style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">المنطقة</label>
+                  <input type="text" name="region" class="form-input" value="${editingProject ? editingProject.region : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">اسم المشروع</label>
+                  <input type="text" name="name" class="form-input" value="${editingProject ? editingProject.name : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">الكود</label>
+                    <input type="text" name="code" class="form-input" value="${editingProject ? editingProject.code : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">رقم الطلب</label>
+                    <input type="text" name="request_number" class="form-input" value="${editingProject ? editingProject.request_number || '' : ''}" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">الحالة</label>
+                  <select name="status" class="form-select" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};">
+                    <option value="${config.status_active || defaultConfig.status_active}" ${editingProject && editingProject.status === (config.status_active || defaultConfig.status_active) ? 'selected' : ''}>${config.status_active || defaultConfig.status_active}</option>
+                    <option value="لم يصدر" ${editingProject && editingProject.status === 'لم يصدر' ? 'selected' : ''}>لم يصدر</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">📅 تاريخ الإصدار</label>
+                    <input type="date" name="issue_date" class="form-input" value="${editingProject ? editingProject.issue_date : ''}" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">⏰ تاريخ الانتهاء</label>
+                    <input type="date" name="expiry_date" class="form-input" value="${editingProject ? editingProject.expiry_date : ''}" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: ${baseFontSize * 0.9}px;">رابط المستند</label>
+                  <input type="url" name="link" class="form-input" value="${editingProject ? editingProject.link : ''}" placeholder="https://..." style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.95}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div style="display: flex; gap: ${baseFontSize}px; margin-top: ${baseFontSize * 2}px;">
+                  <button type="submit" class="modern-button" style="flex: 1; background: linear-gradient(135deg, ${config.secondary_action_color || defaultConfig.secondary_action_color} 0%, #059669 100%); color: white; font-size: ${baseFontSize}px; padding: ${baseFontSize}px;" ${isLoading ? 'disabled' : ''}>
+                    ${isLoading ? '<span class="loading-spinner"></span> جاري الحفظ...' : `💾 ${config.button_save || defaultConfig.button_save}`}
+                  </button>
+                  <button type="button" onclick="handleCloseModal()" class="modern-button" style="flex: 1; background: #e2e8f0; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseFontSize}px; padding: ${baseFontSize}px;" ${isLoading ? 'disabled' : ''}>
+                    ❌ ${config.button_cancel || defaultConfig.button_cancel}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ` : ''}
+      `;
+
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value;
+          renderApp();
+        });
+      }
+    }
+
+    window.handleAddProject = handleAddProject;
+    window.handleEditProject = handleEditProject;
+    window.handleDeleteProject = handleDeleteProject;
+    window.handleCancelDelete = handleCancelDelete;
+    window.handleSubmitForm = handleSubmitForm;
+    window.handleCloseModal = handleCloseModal;
+    window.loadInitialData = loadInitialData;
+
+    window.setFilter = function(filter) {
+      currentFilter = filter;
+      renderApp();
+    };
+
+    async function onConfigChange(newConfig) {
+      config = newConfig;
+      renderApp();
+    }
+
+    async function init() {
+      if (window.dataSdk) {
+        const initResult = await window.dataSdk.init(dataHandler);
+        if (!initResult.isOk) {
+          console.error("Failed to initialize Data SDK");
+          showToast('فشل في تهيئة النظام', 'error');
+        }
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              {
+                get: () => cfg.background_color || defaultConfig.background_color,
+                set: (value) => {
+                  cfg.background_color = value;
+                  window.elementSdk.setConfig({ background_color: value });
+                }
+              },
+              {
+                get: () => cfg.surface_color || defaultConfig.surface_color,
+                set: (value) => {
+                  cfg.surface_color = value;
+                  window.elementSdk.setConfig({ surface_color: value });
+                }
+              },
+              {
+                get: () => cfg.text_color || defaultConfig.text_color,
+                set: (value) => {
+                  cfg.text_color = value;
+                  window.elementSdk.setConfig({ text_color: value });
+                }
+              },
+              {
+                get: () => cfg.primary_action_color || defaultConfig.primary_action_color,
+                set: (value) => {
+                  cfg.primary_action_color = value;
+                  window.elementSdk.setConfig({ primary_action_color: value });
+                }
+              },
+              {
+                get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color,
+                set: (value) => {
+                  cfg.secondary_action_color = value;
+                  window.elementSdk.setConfig({ secondary_action_color: value });
+                }
+              }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (value) => {
+                cfg.font_family = value;
+                window.elementSdk.setConfig({ font_family: value });
+              }
+            },
+            fontSizeable: {
+              get: () => cfg.font_size || defaultConfig.font_size,
+              set: (value) => {
+                cfg.font_size = value;
+                window.elementSdk.setConfig({ font_size: value });
+              }
+            }
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ["system_title", cfg.system_title || defaultConfig.system_title],
+            ["search_placeholder", cfg.search_placeholder || defaultConfig.search_placeholder],
+            ["header_number", cfg.header_number || defaultConfig.header_number],
+            ["header_region", cfg.header_region || defaultConfig.header_region],
+            ["header_project", cfg.header_project || defaultConfig.header_project],
+            ["header_code", cfg.header_code || defaultConfig.header_code],
+            ["header_request_number", cfg.header_request_number || defaultConfig.header_request_number],
+            ["header_status", cfg.header_status || defaultConfig.header_status],
+            ["header_issue_date", cfg.header_issue_date || defaultConfig.header_issue_date],
+            ["header_expiry_date", cfg.header_expiry_date || defaultConfig.header_expiry_date],
+            ["header_document", cfg.header_document || defaultConfig.header_document],
+            ["filter_all", cfg.filter_all || defaultConfig.filter_all],
+            ["status_active", cfg.status_active || defaultConfig.status_active],
+            ["button_add", cfg.button_add || defaultConfig.button_add],
+            ["button_edit", cfg.button_edit || defaultConfig.button_edit],
+            ["button_delete", cfg.button_delete || defaultConfig.button_delete],
+            ["button_save", cfg.button_save || defaultConfig.button_save],
+            ["button_cancel", cfg.button_cancel || defaultConfig.button_cancel]
+          ])
+        });
+
+        config = window.elementSdk.config;
+      }
+
+      renderApp();
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b72161ae1a15267',t:'MTc2NzI3MTIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
