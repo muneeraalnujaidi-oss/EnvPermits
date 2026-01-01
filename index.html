@@ -695,14 +695,9 @@ async function loadInitialData() {
                 <p style="font-size: ${baseFontSize * 1.1}px; color: #64748b; margin-bottom: ${baseFontSize * 2}px; max-width: 500px; margin-left: auto; margin-right: auto;">
                   قاعدة البيانات فارغة حالياً. اضغط الزر أدناه لتحميل جميع التصاريح البيئية (24 تصريح).
                 </p>
-                <button 
-                  onclick="loadInitialData()" 
-                  class="load-data-button"
-                  ${isLoadingInitialData ? 'disabled' : ''}
-                  style="font-family: ${displayFont};"
-                >
-                  ${isLoadingInitialData ? '<span class="loading-spinner"></span> جاري التحميل...' : '📥 تحميل جميع التصاريح (24 تصريح)'}
-                </button>
+<p style="font-size: 18px; color: #10b981; font-weight: bold; margin-top: 20px;">
+  جاري تحميل التصاريح تلقائياً... انتظري ثواني قليلة 📊
+</p>
                 <p style="font-size: ${baseFontSize * 0.85}px; color: #94a3b8; margin-top: ${baseFontSize * 1.5}px;">
                   سيتم تحميل 13 تصريح ساري + 11 تصريح قيد الانتظار
                 </p>
@@ -1084,4 +1079,5 @@ async function loadInitialData() {
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b72161ae1a15267',t:'MTc2NzI3MTIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 
 </html>
+
 
