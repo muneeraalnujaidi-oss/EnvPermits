@@ -1,0 +1,1636 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة التصاريح البيئية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .stat-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: slideUp 0.5s ease-out forwards;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .stat-card:hover::before {
+      left: 100%;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      animation: slideUp 0.6s ease-out forwards;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .modern-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .modern-table thead {
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .modern-table th {
+      padding: 16px 20px;
+      text-align: right;
+      font-weight: 600;
+      color: #424242;
+      border-bottom: 1px solid #e0e0e0;
+      white-space: nowrap;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .modern-table td {
+      padding: 20px;
+      border-bottom: 1px solid #f5f5f5;
+      transition: all 0.2s ease;
+      vertical-align: middle;
+    }
+
+    .modern-table tbody tr {
+      transition: all 0.2s ease;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .modern-table tbody tr:hover {
+      background: #fafafa;
+    }
+
+    .modern-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .modern-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.2px;
+      font-size: 14px;
+    }
+
+    .modern-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .modern-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 480px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 48px 12px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: white;
+      font-weight: 500;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #9e9e9e;
+      pointer-events: none;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .status-active {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-pending {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #616161;
+      white-space: nowrap;
+      border: 1px solid #e0e0e0;
+    }
+
+    .date-expired {
+      background: #ffebee;
+      color: #c62828;
+      border-color: #ef9a9a;
+      animation: pulse 2s infinite;
+      font-weight: 700;
+    }
+
+    .date-warning {
+      background: #fff3e0;
+      color: #e65100;
+      border-color: #ffb74d;
+      font-weight: 700;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .link-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .icon-button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-edit {
+      background: #1976d2;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-edit:hover {
+      background: #1565c0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    }
+
+    .btn-delete {
+      background: #d32f2f;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-delete:hover {
+      background: #c62828;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+    }
+
+    .delete-confirm {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease-out;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90%;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #424242;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: white;
+      font-weight: 500;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      animation: slideDown 0.3s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 0.2px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .toast-success {
+      background: white;
+      color: #2e7d32;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .toast-error {
+      background: white;
+      color: #c62828;
+      border-left: 4px solid #c62828;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .filter-button {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+
+    .category-first {
+      background: #fff8e1;
+      color: #f57f17;
+      border-color: #ffb300;
+    }
+
+    .category-second {
+      background: #fce4ec;
+      color: #c2185b;
+      border-color: #f06292;
+    }
+
+    .category-third {
+      background: #e3f2fd;
+      color: #1565c0;
+      border-color: #64b5f6;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .stat-card {
+        min-width: 100%;
+      }
+
+      .modern-table {
+        font-size: 12px;
+      }
+
+      .modern-table th,
+      .modern-table td {
+        padding: 12px 10px;
+      }
+
+      .search-box {
+        max-width: 100%;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: "#f5f7fa",
+      surface_color: "#ffffff",
+      text_color: "#212121",
+      primary_action_color: "#1976d2",
+      secondary_action_color: "#43a047",
+      font_family: "Segoe UI",
+      font_size: 16,
+      system_title: "نظام إدارة التصاريح البيئية",
+      search_placeholder: "ابحث عن مشروع، منطقة، أو كود...",
+      header_number: "#",
+      header_region: "المنطقة",
+      header_project: "المشروع",
+      header_category: "الفئة",
+      header_code: "الكود",
+      header_request_number: "رقم الطلب",
+      header_status: "الحالة",
+      header_issue_date: "تاريخ الإصدار",
+      header_expiry_date: "تاريخ الانتهاء",
+      header_document: "المستند",
+      filter_all: "الكل",
+      status_active: "سارية",
+      button_add: "إضافة تصريح",
+      button_edit: "تعديل",
+      button_delete: "حذف",
+      button_save: "حفظ",
+      button_cancel: "إلغاء"
+    };
+
+    let config = { ...defaultConfig };
+    let projects = [];
+    let searchQuery = '';
+    let currentFilter = 'all';
+    let showModal = false;
+    let editingProject = null;
+    let deleteConfirmId = null;
+    let isLoading = false;
+    let isInitialLoad = true;
+
+    // Check if Data SDK is available
+    const useDataSDK = typeof window.dataSdk !== 'undefined';
+    
+    // Load from localStorage if Data SDK not available
+    if (!useDataSDK) {
+      const savedProjects = localStorage.getItem('environmental_permits');
+      if (savedProjects) {
+        try {
+          projects = JSON.parse(savedProjects);
+        } catch (e) {
+          projects = [];
+        }
+      }
+    }
+
+    const dataHandler = {
+      onDataChanged(data) {
+        projects = data;
+        renderApp();
+      }
+    };
+
+    function saveToLocalStorage() {
+      if (!useDataSDK) {
+        localStorage.setItem('environmental_permits', JSON.stringify(projects));
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) {
+        existingToast.remove();
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `
+        <span style="font-size: 20px;">${type === 'success' ? '   ' : '⚠'}</span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'fadeIn 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).split('/').reverse().join('-');
+    }
+
+    function getDateStatus(expiryDate) {
+      if (!expiryDate) return 'normal';
+      const today = new Date();
+      const expiry = new Date(expiryDate);
+      const diffTime = expiry - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return 'expired';
+      if (diffDays <= 30) return 'warning';
+      return 'normal';
+    }
+
+    function getCurrentTime() {
+      return new Date().toLocaleString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    }
+
+    function handleAddProject() {
+      if (projects.length >= 999) {
+        showToast('تم الوصول للحد الأقصى (999 تصريح). يرجى حذف بعض التصاريح أولاً', 'error');
+        return;
+      }
+      editingProject = null;
+      showModal = true;
+      renderApp();
+    }
+
+    function handleEditProject(project) {
+      editingProject = project;
+      showModal = true;
+      renderApp();
+    }
+
+    function handleDeleteProject(project) {
+      if (deleteConfirmId === project.__backendId) {
+        performDelete(project);
+      } else {
+        deleteConfirmId = project.__backendId;
+        renderApp();
+      }
+    }
+
+    function handleCancelDelete() {
+      deleteConfirmId = null;
+      renderApp();
+    }
+
+    async function performDelete(project) {
+      isLoading = true;
+      renderApp();
+
+      let success = false;
+      
+      if (useDataSDK) {
+        const result = await window.dataSdk.delete(project);
+        success = result.isOk;
+      } else {
+        // Delete from local array
+        const index = projects.findIndex(p => p.id === project.id);
+        if (index !== -1) {
+          projects.splice(index, 1);
+          saveToLocalStorage();
+          success = true;
+        }
+      }
+
+      isLoading = false;
+      deleteConfirmId = null;
+
+      if (success) {
+        showToast('تم حذف التصريح بنجاح', 'success');
+        if (!useDataSDK) renderApp();
+      } else {
+        showToast('فشل في حذف التصريح', 'error');
+        renderApp();
+      }
+    }
+
+    async function handleSubmitForm(event) {
+      event.preventDefault();
+
+      if (isLoading) return;
+
+      const formData = new FormData(event.target);
+      const projectData = {
+        id: formData.get('id'),
+        region: formData.get('region'),
+        name: formData.get('name'),
+        category: formData.get('category') || 'فئة ثانية',
+        code: formData.get('code'),
+        request_number: formData.get('request_number') || '',
+        status: formData.get('status'),
+        issue_date: formData.get('issue_date') || '',
+        expiry_date: formData.get('expiry_date') || '',
+        link: formData.get('link') || ''
+      };
+
+      isLoading = true;
+      renderApp();
+
+      let success = false;
+
+      if (useDataSDK) {
+        let result;
+        if (editingProject) {
+          result = await window.dataSdk.update({
+            ...projectData,
+            __backendId: editingProject.__backendId
+          });
+        } else {
+          result = await window.dataSdk.create(projectData);
+        }
+        success = result.isOk;
+      } else {
+        // Save to local array
+        if (editingProject) {
+          const index = projects.findIndex(p => p.id === editingProject.id);
+          if (index !== -1) {
+            projects[index] = projectData;
+            success = true;
+          }
+        } else {
+          projects.push(projectData);
+          success = true;
+        }
+        if (success) {
+          saveToLocalStorage();
+        }
+      }
+
+      isLoading = false;
+
+      if (success) {
+        showToast(editingProject ? 'تم تحديث التصريح بنجاح' : 'تم إضافة التصريح بنجاح', 'success');
+        handleCloseModal();
+        if (!useDataSDK) renderApp();
+      } else {
+        showToast('فشلت العملية. حاول مرة أخرى', 'error');
+        renderApp();
+      }
+    }
+
+    function handleCloseModal() {
+      showModal = false;
+      editingProject = null;
+      renderApp();
+    }
+
+    async function loadInitialData() {
+      // Skip if already loaded or using local storage
+      if (projects.length > 0 || !useDataSDK) {
+        return;
+      }
+
+      if (projects.length >= 999) {
+        return;
+      }
+
+      const remaining = 999 - projects.length;
+      const toLoad = Math.min(24, remaining);
+
+      if (toLoad === 0) {
+        return;
+      }
+
+      const activePermits = [
+        { 
+          id: "P1379", 
+          region: "القصيم - بريدة", 
+          name: "مشروع انشاء شبكات صرف صحي - القاع البارد شرق مدينة بريدة - عقد رقم (1)", 
+          category: "فئة ثانية",
+          code: "P1379", 
+          request_number: "EPC2-2025-006274", 
+          status: "سارية", 
+          issue_date: "2025-11-04", 
+          expiry_date: "2028-11-04", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1379.pdf"
+        },
+        { 
+          id: "P1381", 
+          region: "القصيم - بريدة", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الرحاب 1 - السلمان - الناصرية - واسط - الحمر)", 
+          category: "فئة ثانية",
+          code: "P1381", 
+          request_number: "EPC2-2025-006297", 
+          status: "سارية", 
+          issue_date: "2025-10-28", 
+          expiry_date: "2028-10-28", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1381.pdf"
+        },
+        { 
+          id: "P1382", 
+          region: "القصيم - بريدة", 
+          name: "مشروع انشاء شبكات صرف صحي ومحطات ضخ - حي النفل شرق مدينة بريدة - عقد رقم (2)", 
+          category: "فئة ثانية",
+          code: "P1382", 
+          request_number: "EPC2-2025-006287", 
+          status: "سارية", 
+          issue_date: "2025-11-04", 
+          expiry_date: "2028-11-04", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1382.pdf"
+        },
+        { 
+          id: "P1334", 
+          region: "القصيم - الرس", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الإسكان - السلام - الفيصلية - الحمراء)", 
+          category: "فئة ثانية",
+          code: "P1334", 
+          request_number: "EPC2-2025-006273", 
+          status: "سارية", 
+          issue_date: "2025-11-04", 
+          expiry_date: "2028-11-04", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1334.pdf"
+        },
+        { 
+          id: "P1343", 
+          region: "القصيم - عيون الجواء", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الجردة - النهضة - النزهة - التعليم - المرقب - الخزان - المنتزه) - مرحلة أولى", 
+          category: "فئة ثانية",
+          code: "P1343", 
+          request_number: "EPC3-2025-000807", 
+          status: "سارية", 
+          issue_date: "2025-08-12", 
+          expiry_date: "2028-08-12", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1343.pdf"
+        },
+        { 
+          id: "P1344", 
+          region: "القصيم - عيون الجواء", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الجردة - الاسكان) - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "P1344", 
+          request_number: "EPC2-2025-004354", 
+          status: "سارية", 
+          issue_date: "2025-11-04", 
+          expiry_date: "2028-11-04", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1344.pdf"
+        },
+        { 
+          id: "A7", 
+          region: "حائل - حائل", 
+          name: "مشروع انشاء شبكات صرف صحي مع الخط الناقل - حي (الجثامية - النيصية - اللقيطة - مفاتيح العلوم) - عقد رقم (1)", 
+          category: "فئة ثانية",
+          code: "A7", 
+          request_number: "EPC2-2025-006290", 
+          status: "سارية", 
+          issue_date: "2025-11-10", 
+          expiry_date: "2028-11-10", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/A7.pdf"
+        },
+        { 
+          id: "P454", 
+          region: "حائل - الغزالة", 
+          name: "مشروع انشاء شبكات صرف صحي - عقد رقم (2)", 
+          category: "فئة ثانية",
+          code: "P454", 
+          request_number: "EPC2-2025-006271", 
+          status: "سارية", 
+          issue_date: "2025-10-29", 
+          expiry_date: "2028-10-29", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/454.pdf"
+        },
+        { 
+          id: "P1285", 
+          region: "الحدود الشمالية - رفحاء", 
+          name: "مشروع انشاء شبكات صرف صحي - حي الورود - المرحلة الرابعة", 
+          category: "فئة ثانية",
+          code: "P1285", 
+          request_number: "EPC3-2025-000720", 
+          status: "سارية", 
+          issue_date: "2025-07-15", 
+          expiry_date: "2028-07-15", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1285.pdf"
+        },
+        { 
+          id: "P455", 
+          region: "حائل - حائل", 
+          name: "مشروع انشاء شبكات صرف صحي مع الخط الناقل - مخطط المدائن - عقد رقم (1)", 
+          category: "فئة ثانية",
+          code: "P455", 
+          request_number: "EPC2-2025-006276", 
+          status: "سارية", 
+          issue_date: "2025-12-01", 
+          expiry_date: "2028-12-01", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/455.pdf"
+        },
+        { 
+          id: "P470", 
+          region: "حائل - حائل", 
+          name: "مشروع انشاء شبكات صرف صحي - مخطط المدائن - عقد رقم (3)", 
+          category: "فئة ثانية",
+          code: "P470", 
+          request_number: "EPC2-2025-006379", 
+          status: "سارية", 
+          issue_date: "2025-12-01", 
+          expiry_date: "2028-12-01", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/470.pdf"
+        },
+        { 
+          id: "P471", 
+          region: "حائل - حائل", 
+          name: "مشروع انشاء شبكات صرف صحي - مخطط المدائن - عقد رقم (2)", 
+          category: "فئة ثانية",
+          code: "P471", 
+          request_number: "EPC2-2025-006378", 
+          status: "سارية", 
+          issue_date: "2025-12-01", 
+          expiry_date: "2028-12-01", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/471.pdf"
+        },
+        { 
+          id: "P456", 
+          region: "حائل - حائل", 
+          name: "مشروع انشاء شبكات صرف صحي - ضاحية الملك فهد - عقد رقم (2)", 
+          category: "فئة ثانية",
+          code: "P456", 
+          request_number: "EPC2-2025-006383", 
+          status: "سارية", 
+          issue_date: "2025-12-14", 
+          expiry_date: "2028-12-14", 
+          link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/456.pdf"
+        }
+      ];
+
+      const pendingPermits = [
+        { 
+          id: "P1342", 
+          region: "القصيم - الاسياح", 
+          name: "مشروع انشاء شبكات صرف صحي - مجموعة أحياء - مرحلة أولى", 
+          category: "فئة ثانية",
+          code: "P1342", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1346", 
+          region: "القصيم - الاسياح", 
+          name: "مشروع انشاء شبكات صرف صحي - مجموعة أحياء - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "P1346", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1347", 
+          region: "القصيم - عنيزة", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الوفاء - الحمراء - النصور - الاسكان - المحمدية) - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "P1347", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1349", 
+          region: "القصيم - رياض ا  خبراء", 
+          name: "مشروع انشاء شبكات صرف صحي - حي طيبة + بعض من أجزاء حي الخندق", 
+          category: "فئة ثانية",
+          code: "P1349", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1350", 
+          region: "القصيم - رياض الخبراء", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الأندلس - الفلاح - الخندق) - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "P1350", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1353", 
+          region: "القصيم - الرس", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الشنانة الشمالي - الصناعية - الورود - المروج) - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "P1353", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1354", 
+          region: "القصيم - الرس", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (الرحاب - المنار - التعليم) جنوب الرس", 
+          category: "فئة ثانية",
+          code: "P1354", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1383", 
+          region: "القصيم - بريدة", 
+          name: "مشروع انشاء شبكات صرف صحي ومحطات ضخ - حي اله  ية - عقد رقم (3)", 
+          category: "فئة ثانية",
+          code: "P1383", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P1385", 
+          region: "القصيم - بريدة", 
+          name: "مشروع انشاء شبكات صرف صحي - حي (حويلان - المريديسية - العريمضي)", 
+          category: "فئة ثانية",
+          code: "P1385", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "A11", 
+          region: "القصيم - البكيرية، عنيزة، البدائع", 
+          name: "مشروع انشاء شبكات صرف صحي - مرحلة ثانية", 
+          category: "فئة ثانية",
+          code: "A11", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        },
+        { 
+          id: "P585", 
+          region: "الجوف - سكاكا", 
+          name: "مشروع انشاء شبكات صرف صحي - مرحلة ثامنة", 
+          category: "فئة ثانية",
+          code: "P585", 
+          request_number: "", 
+          status: "لم يصدر", 
+          issue_date: "", 
+          expiry_date: "", 
+          link: ""
+        }
+      ];
+
+      const allData = [...activePermits, ...pendingPermits];
+      const dataToLoad = allData.slice(0, toLoad);
+
+      for (const data of dataToLoad) {
+        const result = await window.dataSdk.create(data);
+        if (!result.isOk) {
+          if (!isInitialLoad) {
+            showToast('فشل في تحميل بعض البيانات', 'error');
+          }
+          return;
+        }
+      }
+
+      if (!isInitialLoad) {
+        showToast(`تم تحميل ${dataToLoad.length} تصريح بنجاح`, 'success');
+      }
+    }
+
+    function getCategoryBadgeClass(category) {
+      if (category === 'فئة أولى') return 'category-first';
+      if (category === 'فئة   الثة') return 'category-third';
+      return 'category-second';
+    }
+
+    function renderApp() {
+      const app = document.getElementById('app');
+      if (!app) return;
+
+      const baseFontSize = config.font_size || defaultConfig.font_size;
+      const displayFont = `${config.font_family || defaultConfig.font_family}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`;
+
+      document.body.style.background = config.background_color || defaultConfig.background_color;
+      document.body.style.fontFamily = displayFont;
+
+      const filteredProjects = projects.filter(project => {
+        const matchesSearch = !searchQuery || 
+          project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          project.region.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          project.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (project.request_number && project.request_number.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        const matchesFilter = currentFilter === 'all' || 
+          project.status === currentFilter;
+
+        return matchesSearch && matchesFilter;
+      });
+
+      const totalProjects = projects.length;
+      const activeProjects = projects.filter(p => p.status === 'سارية').length;
+      const pendingProjects = projects.filter(p => p.status === 'لم يصدر').length;
+
+      app.innerHTML = `
+        <div style="min-height: 100%; width: 100%; background: ${config.background_color || defaultConfig.background_color}; padding: ${baseFontSize * 2}px ${baseFontSize * 1.5}px; font-family: ${displayFont};">
+          <div style="max-width: 1400px; margin: 0 auto;">
+            
+            <!-- Premium Header with Gradient -->
+            <div style="background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%); padding: ${baseFontSize * 2.5}px ${baseFontSize * 2.5}px; border-radius: 16px; margin-bottom: ${baseFontSize * 2}px; box-shadow: 0 8px 32px rgba(44, 82, 130, 0.2); position: relative; overflow: hidden;">
+              <div style="position: absolute; top: -50%; right: -10%; width: 400px; height: 400px; background: rgba(255, 255, 255, 0.08); border-radius: 50%; filter: blur(60px);"></div>
+              <div style="position: absolute; bottom: -30%; left: -5%; width: 300px; height: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; filter: blur(50px);"></div>
+              
+              <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: ${baseFontSize * 1.5}px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: ${baseFontSize * 0.8}px; margin-bottom: ${baseFontSize * 0.6}px;">
+                    <div style="width: ${baseFontSize * 2.5}px; height: ${baseFontSize * 2.5}px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: ${baseFontSize * 1.3}px; backdrop-filter: blur(10px);">
+                      🌿
+                    </div>
+                    <h1 style="font-size: ${baseFontSize * 1.85}px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.5px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);">
+                      ${config.system_title || defaultConfig.system_title}
+                    </h1>
+                  </div>
+                  <p style="font-size: ${baseFontSize * 0.95}px; color: rgba(255, 255, 255, 0.95); margin: 0; font-weight: 500; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);">
+                    إدارة شاملة واحترافية للتصاريح والمشاريع البيئية
+                  </p>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.15); padding: ${baseFontSize * 0.9}px ${baseFontSize * 1.4}px; border-radius: 10px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+                  <div style="font-size: ${baseFontSize * 0.8}px; color: rgba(255, 255, 255, 0.9); font-weight: 600; text-align: center;">
+                    ${getCurrentTime()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Premium Statistics Cards -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: ${baseFontSize * 1.2}px; margin-bottom: ${baseFontSize * 2}px;">
+              
+              <!-- Total Card with Blue Gradient -->
+              <div class="stat-card" style="background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%); padding: ${baseFontSize * 1.4}px ${baseFontSize * 1.5}px; border-radius: 12px; box-shadow: 0 4px 16px rgba(49, 130, 206, 0.2); border: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.08); border-radius: 50%; filter: blur(25px);"></div>
+                <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: ${baseFontSize * 0.75}px; color: rgba(255, 255, 255, 0.9); font-weight: 600; margin-bottom: ${baseFontSize * 0.5}px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
+                      إجمالي التصاريح
+                    </div>
+                    <div style="font-size: ${baseFontSize * 2.2}px; font-weight: 700; color: white; line-height: 1; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
+                      ${totalProjects}
+                    </div>
+                  </div>
+                  <div style="width: ${baseFontSize * 3.5}px; height: ${baseFontSize * 3.5}px; background: rgba(255, 255, 255, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: ${baseFontSize * 1.6}px; backdrop-filter: blur(10px);">
+                    📊
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Card with Green Gradient -->
+              <div class="stat-card" style="background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); padding: ${baseFontSize * 1.4}px ${baseFontSize * 1.5}px; border-radius: 12px; box-shadow: 0 4px 16px rgba(56, 161, 105, 0.2); border: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; filter: blur(25px);"></div>
+                <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: ${baseFontSize * 0.75}px; color: rgba(255, 255, 255, 0.9); font-weight: 600; margin-bottom: ${baseFontSize * 0.5}px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
+                      التصاريح السارية
+                    </div>
+                    <div style="font-size: ${baseFontSize * 2.2}px; font-weight: 700; color: white; line-height: 1; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
+                      ${activeProjects}
+                    </div>
+                  </div>
+                  <div style="width: ${baseFontSize * 3.5}px; height: ${baseFontSize * 3.5}px; background: rgba(255, 255, 255, 0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: ${baseFontSize * 1.6}px; backdrop-filter: blur(10px);">
+                    ✓
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pending Card with Orange Gradient -->
+              <div class="stat-card" style="background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%); padding: ${baseFontSize * 1.4}px ${baseFontSize * 1.5}px; border-radius: 12px; box-shadow: 0 4px 16px rgba(221, 107, 32, 0.2); border: none; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; filter: blur(25px);"></div>
+                <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: ${baseFontSize * 0.75}px; color: rgba(255, 255, 255, 0.9); font-weight: 600; margin-bottom: ${baseFontSize * 0.5}px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
+                      لم يصدر
+                    </div>
+                    <div style="font-size: ${baseFontSize * 2.2}px; font-weight: 700; color: white; line-height: 1; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
+                      ${pendingProjects}
+                    </div>
+                  </div>
+                  <div style="width: ${baseFontSize * 3.5}px; height: ${baseFontSize * 3.5}px; background: rgba(255, 255, 255, 0.25); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: ${baseFontSize * 1.6}px; backdrop-filter: blur(10px);">
+                    ⏳
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="card" style="padding: ${baseFontSize * 1.8}px; margin-bottom: ${baseFontSize * 2}px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: ${baseFontSize * 1.5}px; margin-bottom: ${baseFontSize * 1.8}px;">
+                
+                <div class="search-box">
+                  <input 
+                    type="text" 
+                    id="search-input"
+                    class="search-input" 
+                    placeholder="${config.search_placeholder || defaultConfig.search_placeholder}"
+                    value="${searchQuery}"
+                    style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};"
+                  />
+                  <span class="search-icon">🔍</span>
+                </div>
+
+                <button 
+                  onclick="handleAddProject()"
+                  class="modern-button"
+                  style="background: ${config.secondary_action_color || defaultConfig.secondary_action_color}; color: white; font-size: ${baseFontSize * 0.9}px; font-family: ${displayFont};"
+                >
+                  <span style="font-size: ${baseFontSize * 1.1}px;">+</span>
+                  <span>إضافة تصريح</span>
+                </button>
+              </div>
+              
+              <div style="display: flex; gap: ${baseFontSize * 0.8}px; flex-wrap: wrap;">
+                <button 
+                  onclick="setFilter('all')"
+                  class="modern-button filter-button"
+                  style="background: ${currentFilter === 'all' ? config.primary_action_color || defaultConfig.primary_action_color : '#f5f5f5'}; color: ${currentFilter === 'all' ? 'white' : config.text_color || defaultConfig.text_color}; border: 1.5px solid ${currentFilter === 'all' ? config.primary_action_color || defaultConfig.primary_action_color : '#e0e0e0'}; font-size: ${baseFontSize * 0.85}px; font-family: ${displayFont}; padding: ${baseFontSize * 0.7}px ${baseFontSize * 1.4}px;"
+                >
+                  ${config.filter_all || defaultConfig.filter_all} (${totalProjects})
+                </button>
+                
+                <button 
+                  onclick="setFilter('سارية')"
+                  class="modern-button filter-button"
+                  style="background: ${currentFilter === 'سارية' ? config.secondary_action_color || defaultConfig.secondary_action_color : '#f5f5f5'}; color: ${currentFilter === 'سارية' ? 'white' : config.text_color || defaultConfig.text_color}; border: 1.5px solid ${currentFilter === 'سارية' ? config.secondary_action_color || defaultConfig.secondary_action_color : '#e0e0e0'}; font-size: ${baseFontSize * 0.85}px; font-family: ${displayFont}; padding: ${baseFontSize * 0.7}px ${baseFontSize * 1.4}px;"
+                >
+                  سارية (${activeProjects})
+                </button>
+                
+                <button 
+                  onclick="setFilter('لم يصدر')"
+                  class="modern-button filter-button"
+                  style="background: ${currentFilter === 'لم يصدر' ? '#ff6f00' : '#f5f5f5'}; color: ${currentFilter === 'لم يصدر' ? 'white' : config.text_color || defaultConfig.text_color}; border: 1.5px solid ${currentFilter === 'لم يصدر' ? '#ff6f00' : '#e0e0e0'}; font-size: ${baseFontSize * 0.85}px; font-family: ${displayFont}; padding: ${baseFontSize * 0.7}px ${baseFontSize * 1.4}px;"
+                >
+                  لم يصدر (${pendingProjects})
+                </button>
+              </div>
+            </div>
+
+            <!-- Clean Data Table -->
+            <div class="card" style="overflow: hidden;">
+              <div style="overflow-x: auto;">
+                <table class="modern-table" style="font-size: ${baseFontSize * 0.9}px;">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px; text-align: center;">${config.header_number || defaultConfig.header_number}</th>
+                      <th style="min-width: 130px;">${config.header_region || defaultConfig.header_region}</th>
+                      <th style="min-width: 280px;">${config.header_project || defaultConfig.header_project}</th>
+                      <th style="width: 110px; text-align: center;">${config.header_category || defaultConfig.header_category}</th>
+                      <th style="width: 90px; text-align: center;">${config.header_code || defaultConfig.header_code}</th>
+                      <th style="min-width: 170px; text-align: center;">${config.header_request_number || defaultConfig.header_request_number}</th>
+                      <th style="width: 120px; text-align: center;">${config.header_status || defaultConfig.header_status}</th>
+                      <th style="width: 140px; text-align: center;">${config.header_issue_date || defaultConfig.header_issue_date}</th>
+                      <th style="width: 140px; text-align: center;">${config.header_expiry_date || defaultConfig.header_expiry_date}</th>
+                      <th style="width: 110px; text-align: center;">${config.header_document || defaultConfig.header_document}</th>
+                      <th style="width: 180px; text-align: center;">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${filteredProjects.length === 0 ? `
+                      <tr>
+                        <td colspan="11" style="text-align: center; padding: ${baseFontSize * 4}px; color: #9e9e9e;">
+                          <div style="font-size: ${baseFontSize * 3}px; margin-bottom: ${baseFontSize}px;">🔍</div>
+                          <div style="font-size: ${baseFontSize * 1.1}px; font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; margin-bottom: ${baseFontSize * 0.4}px;">لا توجد نتائج مطابقة</div>
+                          <div style="font-size: ${baseFontSize * 0.85}px; margin-top: ${baseFontSize * 0.4}px; font-weight: 500;">جرب البحث بكلمات مختلفة أو غير الفلتر</div>
+                        </td>
+                      </tr>
+                    ` : filteredProjects.map((project, index) => {
+                      const dateStatus = getDateStatus(project.expiry_date);
+                      const projectJson = JSON.stringify(project).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                      return `
+                      <tr>
+                        <td style="font-weight: 700; text-align: center; color: ${config.primary_action_color || defaultConfig.primary_action_color}; font-size: ${baseFontSize * 0.95}px;">
+                          ${index + 1}
+                        </td>
+                        <td style="font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; line-height: 1.5;">
+                          ${project.region}
+                        </td>
+                        <td style="line-height: 1.6; color: #424242; font-weight: 500;">
+                          ${project.name}
+                        </td>
+                        <td style="text-align: center;">
+                          <span class="category-badge ${getCategoryBadgeClass(project.category || 'فئة ثانية')}" style="font-size: ${baseFontSize * 0.75}px;">
+                            ${project.category || 'فئة ثانية'}
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <span style="background: #f5f5f5; padding: ${baseFontSize * 0.4}px ${baseFontSize * 0.75}px; border-radius: 6px; font-weight: 700; font-family: 'Courier New', monospace; color: ${config.primary_action_color || defaultConfig.primary_action_color}; border: 1px solid #e0e0e0; font-size: ${baseFontSize * 0.85}px;">
+                            ${project.code}
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          ${project.request_number ? `
+                            <span style="background: #e3f2fd; padding: ${baseFontSize * 0.4}px ${baseFontSize * 0.75}px; border-radius: 6px; font-weight: 600; color: #1565c0; font-family: 'Courier New', monospace; border: 1px solid #bbdefb; font-size: ${baseFontSize * 0.8}px; display: inline-block;">
+                              ${project.request_number}
+                            </span>
+                          ` : `<span style="color: #bdbdbd; font-size: ${baseFontSize * 0.85}px; font-weight: 500;">-</span>`}
+                        </td>
+                        <td style="text-align: center;">
+                          <span class="status-badge ${project.status === 'سارية' ? 'status-active' : 'status-pending'}" style="font-size: ${baseFontSize * 0.75}px;">
+                            <span>${project.status === 'سارية' ? '✓' : '⏳'}</span>
+                            <span>${project.status}</span>
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          <span class="date-badge" style="font-size: ${baseFontSize * 0.8}px;">
+                            ${project.issue_date ? formatDate(project.issue_date) : '<span style="color: #bdbdbd;">-</span>'}
+                          </span>
+                        </td>
+                        <td style="text-align: center;">
+                          ${project.expiry_date ? `
+                            <span class="date-badge ${dateStatus === 'expired' ? 'date-expired' : dateStatus === 'warning' ? 'date-warning' : ''}" style="font-size: ${baseFontSize * 0.8}px;">
+                              ${dateStatus === 'expired' ? '⚠️ ' : dateStatus === 'warning' ? '⏰ ' : ''}${formatDate(project.expiry_date)}
+                            </span>
+                          ` : '<span style="color: #bdbdbd;">-</span>'}
+                        </td>
+                        <td style="text-align: center;">
+                          ${project.link ? `
+                            <a href="${project.link}" target="_blank" rel="noopener noreferrer" class="link-button" style="background: ${config.primary_action_color || defaultConfig.primary_action_color}; color: white; font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                              عرض ↗
+                            </a>
+                          ` : `
+                            <span style="color: #bdbdbd; font-size: ${baseFontSize * 0.8}px; font-weight: 500;">قيد الإضافة</span>
+                          `}
+                        </td>
+                        <td style="text-align: center;">
+                          ${deleteConfirmId === project.__backendId ? `
+                            <div class="delete-confirm">
+                              <button onclick='window.performDeleteWrapper("${projectJson}")' class="icon-button" style="background: #d32f2f; color: white; font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                ${isLoading ? '<span class="loading-spinner"></span>' : '✓ تأكيد'}
+                              </button>
+                              <button onclick="handleCancelDelete()" class="icon-button" style="background: #f5f5f5; color: ${config.text_color || defaultConfig.text_color}; font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                ✕ إلغاء
+                              </button>
+                            </div>
+                          ` : `
+                            <div class="action-buttons">
+                              <button onclick='window.editProjectWrapper("${projectJson}")' class="icon-button btn-edit" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                ✏️ ${config.button_edit || defaultConfig.button_edit}
+                              </button>
+                              <button onclick='window.deleteProjectWrapper("${projectJson}")' class="icon-button btn-delete" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.8}px;">
+                                🗑️ ${config.button_delete || defaultConfig.button_delete}
+                              </button>
+                            </div>
+                          `}
+                        </td>
+                      </tr>
+                    `;}).join('')}
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Clean Footer -->
+              <div style="padding: ${baseFontSize * 1.5}px ${baseFontSize * 2}px; background: #fafafa; border-top: 1px solid #e0e0e0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: ${baseFontSize}px;">
+                  <div style="font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseFontSize * 0.9}px;">
+                    عرض <span style="color: ${config.primary_action_color || defaultConfig.primary_action_color}; font-weight: 700;">${filteredProjects.length}</span> من أصل <span style="font-weight: 700;">${totalProjects}</span> تصريح
+                  </div>
+                  <div style="display: flex; align-items: center; gap: ${baseFontSize * 0.5}px; font-size: ${baseFontSize * 0.85}px; color: #757575; font-weight: 500;">
+                    <span>⏰</span>
+                    <span>آخر تحديث: ${getCurrentTime()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        ${showModal ? `
+          <div class="modal-overlay" onclick="if(event.target === this) handleCloseModal()">
+            <div class="modal-content" style="font-family: ${displayFont};">
+              <div style="background: white; padding: ${baseFontSize * 1.8}px ${baseFontSize * 2}px; border-bottom: 1px solid #e0e0e0;">
+                <h2 style="font-size: ${baseFontSize * 1.4}px; font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; margin: 0; letter-spacing: -0.2px;">
+                  ${editingProject ? '✏️ تعديل التصريح' : '➕ إضافة تصريح جديد'}
+                </h2>
+              </div>
+              
+              <form onsubmit="handleSubmitForm(event); return false;" style="padding: ${baseFontSize * 2}px;">
+                <div class="form-group">
+                  <label class="form-label" for="project-id">رقم المعرف الفريد</label>
+                  <input type="text" id="project-id" name="id" class="form-input" value="${editingProject ? editingProject.id : ''}" required ${editingProject ? 'readonly' : ''} style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="project-region">المنطقة</label>
+                  <input type="text" id="project-region" name="region" class="form-input" value="${editingProject ? editingProject.region : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="project-name">اسم المشروع</label>
+                  <input type="text" id="project-name" name="name" class="form-input" value="${editingProject ? editingProject.name : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="project-category">فئة المشروع</label>
+                  <select id="project-category" name="category" class="form-select" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};">
+                    <option value="فئة أولى" ${editingProject && editingProject.category === 'فئة أولى' ? 'selected' : ''}>فئة أولى</option>
+                    <option value="فئة ثانية" ${!editingProject || editingProject.category === 'فئة ثانية' ? 'selected' : ''}>فئة ثانية</option>
+                    <option value="فئة ثالثة" ${editingProject && editingProject.category === 'فئة ثالثة' ? 'selected' : ''}>فئة ثالثة</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="project-code">الكود</label>
+                    <input type="text" id="project-code" name="code" class="form-input" value="${editingProject ? editingProject.code : ''}" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="project-request">رقم الطلب</label>
+                    <input type="text" id="project-request" name="request_number" class="form-input" value="${editingProject ? editingProject.request_number || '' : ''}" placeholder="اختياري" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="project-status">الحالة</label>
+                  <select id="project-status" name="status" class="form-select" required style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};">
+                    <option value="سارية" ${editingProject && editingProject.status === 'سارية' ? 'selected' : ''}>سارية</option>
+                    <option value="لم يصدر" ${editingProject && editingProject.status === 'لم يصدر' ? 'selected' : ''}>لم يصدر</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="project-issue-date">تاريخ الإصدار</label>
+                    <input type="date" id="project-issue-date" name="issue_date" class="form-input" value="${editingProject ? editingProject.issue_date : ''}" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="project-expiry-date">تاريخ الانتهاء</label>
+                    <input type="date" id="project-expiry-date" name="expiry_date" class="form-input" value="${editingProject ? editingProject.expiry_date : ''}" style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="project-link">رابط المستند</label>
+                  <input type="url" id="project-link" name="link" class="form-input" value="${editingProject ? editingProject.link : ''}" placeholder="https://..." style="font-family: ${displayFont}; font-size: ${baseFontSize * 0.9}px; color: ${config.text_color || defaultConfig.text_color};" />
+                </div>
+
+                <div style="display: flex; gap: ${baseFontSize}px; margin-top: ${baseFontSize * 2}px;">
+                  <button type="submit" class="modern-button" style="flex: 1; background: ${config.secondary_action_color || defaultConfig.secondary_action_color}; color: white; font-size: ${baseFontSize}px; padding: ${baseFontSize * 1}px; font-family: ${displayFont};" ${isLoading ? 'disabled' : ''}>
+                    ${isLoading ? '<span class="loading-spinner"></span> جاري الحفظ...' : `${config.button_save || defaultConfig.button_save}`}
+                  </button>
+                  <button type="button" onclick="handleCloseModal()" class="modern-button" style="flex: 1; background: #f5f5f5; color: ${config.text_color || defaultConfig.text_color}; font-size: ${baseFontSize}px; padding: ${baseFontSize * 1}px; font-family: ${displayFont};" ${isLoading ? 'disabled' : ''}>
+                    ${config.button_cancel || defaultConfig.button_cancel}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ` : ''}
+      `;
+
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value;
+          renderApp();
+        });
+      }
+    }
+
+    window.handleAddProject = handleAddProject;
+    window.handleCloseModal = handleCloseModal;
+    window.handleSubmitForm = handleSubmitForm;
+    window.handleCancelDelete = handleCancelDelete;
+    window.loadInitialData = loadInitialData;
+
+    window.editProjectWrapper = function(projectJson) {
+      const project = JSON.parse(projectJson.replace(/&quot;/g, '"'));
+      handleEditProject(project);
+    };
+
+    window.deleteProjectWrapper = function(projectJson) {
+      const project = JSON.parse(projectJson.replace(/&quot;/g, '"'));
+      handleDeleteProject(project);
+    };
+
+    window.performDeleteWrapper = function(projectJson) {
+      const project = JSON.parse(projectJson.replace(/&quot;/g, '"'));
+      performDelete(project);
+    };
+
+    window.setFilter = function(filter) {
+      currentFilter = filter;
+      renderApp();
+    };
+
+    async function onConfigChange(newConfig) {
+      config = newConfig;
+      renderApp();
+    }
+
+    async function init() {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              {
+                get: () => cfg.background_color || defaultConfig.background_color,
+                set: (value) => {
+                  cfg.background_color = value;
+                  window.elementSdk.setConfig({ background_color: value });
+                }
+              },
+              {
+                get: () => cfg.surface_color || defaultConfig.surface_color,
+                set: (value) => {
+                  cfg.surface_color = value;
+                  window.elementSdk.setConfig({ surface_color: value });
+                }
+              },
+              {
+                get: () => cfg.text_color || defaultConfig.text_color,
+                set: (value) => {
+                  cfg.text_color = value;
+                  window.elementSdk.setConfig({ text_color: value });
+                }
+              },
+              {
+                get: () => cfg.primary_action_color || defaultConfig.primary_action_color,
+                set: (value) => {
+                  cfg.primary_action_color = value;
+                  window.elementSdk.setConfig({ primary_action_color: value });
+                }
+              },
+              {
+                get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color,
+                set: (value) => {
+                  cfg.secondary_action_color = value;
+                  window.elementSdk.setConfig({ secondary_action_color: value });
+                }
+              }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (value) => {
+                cfg.font_family = value;
+                window.elementSdk.setConfig({ font_family: value });
+              }
+            },
+            fontSizeable: {
+              get: () => cfg.font_size || defaultConfig.font_size,
+              set: (value) => {
+                cfg.font_size = value;
+                window.elementSdk.setConfig({ font_size: value });
+              }
+            }
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ["system_title", cfg.system_title || defaultConfig.system_title],
+            ["search_placeholder", cfg.search_placeholder || defaultConfig.search_placeholder],
+            ["header_number", cfg.header_number || defaultConfig.header_number],
+            ["header_region", cfg.header_region || defaultConfig.header_region],
+            ["header_project", cfg.header_project || defaultConfig.header_project],
+            ["header_category", cfg.header_category || defaultConfig.header_category],
+            ["header_code", cfg.header_code || defaultConfig.header_code],
+            ["header_request_number", cfg.header_request_number || defaultConfig.header_request_number],
+            ["header_status", cfg.header_status || defaultConfig.header_status],
+            ["header_issue_date", cfg.header_issue_date || defaultConfig.header_issue_date],
+            ["header_expiry_date", cfg.header_expiry_date || defaultConfig.header_expiry_date],
+            ["header_document", cfg.header_document || defaultConfig.header_document],
+            ["filter_all", cfg.filter_all || defaultConfig.filter_all],
+            ["status_active", cfg.status_active || defaultConfig.status_active],
+            ["button_add", cfg.button_add || defaultConfig.button_add],
+            ["button_edit", cfg.button_edit || defaultConfig.button_edit],
+            ["button_delete", cfg.button_delete || defaultConfig.button_delete],
+            ["button_save", cfg.button_save || defaultConfig.button_save],
+            ["button_cancel", cfg.button_cancel || defaultConfig.button_cancel]
+          ])
+        });
+
+        config = window.elementSdk.config;
+      }
+
+      // Load initial data for standalone mode
+      if (!useDataSDK && projects.length === 0) {
+        // Load sample data into localStorage
+        const sampleData = [
+          { id: "P1379", region: "القصيم - بريدة", name: "مشروع انشاء شبكات صرف صحي - القاع البارد شرق مدينة بريدة - عقد رقم (1)", category: "فئة ثانية", code: "P1379", request_number: "EPC2-2025-006274", status: "سارية", issue_date: "2025-11-04", expiry_date: "2028-11-04", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1379.pdf" },
+          { id: "P1381", region: "القصيم - بريدة", name: "مشروع انشاء شبكات صرف صحي - حي (الرحاب 1 - السلمان - الناصرية - واسط - الحمر)", category: "فئة ثانية", code: "P1381", request_number: "EPC2-2025-006297", status: "سارية", issue_date: "2025-10-28", expiry_date: "2028-10-28", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1381.pdf" },
+          { id: "P1382", region: "القصيم - بريدة", name: "مشروع انشاء شبكات صرف صحي ومحطات ضخ - حي النفل شرق مدينة بريدة - عقد رقم (2)", category: "فئة ثانية", code: "P1382", request_number: "EPC2-2025-006287", status: "سارية", issue_date: "2025-11-04", expiry_date: "2028-11-04", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1382.pdf" },
+          { id: "P1334", region: "القصيم - الرس", name: "مشروع انشاء شبكات صرف صحي - حي (الإسكان - السلام - الفيصلية - الحمراء)", category: "فئة ثانية", code: "P1334", request_number: "EPC2-2025-006273", status: "سارية", issue_date: "2025-11-04", expiry_date: "2028-11-04", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1334.pdf" },
+          { id: "P1343", region: "القصيم - عيون الجواء", name: "مشروع انشاء شبكات صرف صحي - حي (الجردة - النهضة - النزهة - التعليم - المرقب - الخزان - المنتزه) - مرحلة أولى", category: "فئة ثانية", code: "P1343", request_number: "EPC3-2025-000807", status: "سارية", issue_date: "2025-08-12", expiry_date: "2028-08-12", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1343.pdf" },
+          { id: "P1344", region: "القصيم - عيون الجواء", name: "مشروع انشاء شبكات صرف صحي - حي (الجردة - الاسكان) - مرحلة ثانية", category: "فئة ثانية", code: "P1344", request_number: "EPC2-2025-004354", status: "سارية", issue_date: "2025-11-04", expiry_date: "2028-11-04", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1344.pdf" },
+          { id: "A7", region: "حائل - حائل", name: "مشروع انشاء شبكات صرف صحي مع الخط الناقل - حي (الجثامية - النيصية - اللقيطة - مفاتيح العلوم) - عقد رقم (1)", category: "فئة ثانية", code: "A7", request_number: "EPC2-2025-006290", status: "سارية", issue_date: "2025-11-10", expiry_date: "2028-11-10", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/A7.pdf" },
+          { id: "P454", region: "حائل - الغزالة", name: "مشروع انشاء شبكات صرف صحي - عقد رقم (2)", category: "فئة ثانية", code: "P454", request_number: "EPC2-2025-006271", status: "سارية", issue_date: "2025-10-29", expiry_date: "2028-10-29", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/454.pdf" },
+          { id: "P1285", region: "الحدود الشمالية - رفحاء", name: "مشروع انشاء شبكات صرف صحي - حي الورود - المرحلة الرابعة", category: "فئة ثانية", code: "P1285", request_number: "EPC3-2025-000720", status: "سارية", issue_date: "2025-07-15", expiry_date: "2028-07-15", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/1285.pdf" },
+          { id: "P455", region: "حائل - حائل", name: "مشروع انشاء شبكات صرف صحي مع الخط الناقل - مخطط المدائن - عقد رقم (1)", category: "فئة ثانية", code: "P455", request_number: "EPC2-2025-006276", status: "سارية", issue_date: "2025-12-01", expiry_date: "2028-12-01", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/455.pdf" },
+          { id: "P470", region: "حائل - حائل", name: "مشروع انشاء شبكات صرف صحي - مخطط المدائن - عقد رقم (3)", category: "فئة ثانية", code: "P470", request_number: "EPC2-2025-006379", status: "سارية", issue_date: "2025-12-01", expiry_date: "2028-12-01", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/470.pdf" },
+          { id: "P471", region: "حائل - حائل", name: "مشروع انشاء شبكات صرف صحي - مخطط المدائن - عقد رقم (2)", category: "فئة ثانية", code: "P471", request_number: "EPC2-2025-006378", status: "سارية", issue_date: "2025-12-01", expiry_date: "2028-12-01", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/471.pdf" },
+          { id: "P456", region: "حائل - حائل", name: "مشروع انشاء شبكات صرف صحي - ضاحية الملك فهد - عقد رقم (2)", category: "فئة ثانية", code: "P456", request_number: "EPC2-2025-006383", status: "سارية", issue_date: "2025-12-14", expiry_date: "2028-12-14", link: "https://nwc365-my.sharepoint.com/:b:/r/personal/malnejaidi_nwc_com_sa/Documents/Munira-EnvNorth/456.pdf" },
+          { id: "P1342", region: "القصيم - الاسياح", name: "مشروع انشاء شبكات صرف صحي - مجموعة أحياء - مرحلة أولى", category: "فئة ثانية", code: "P1342", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1346", region: "القصيم - الاسياح", name: "مشروع انشاء شبكات صرف صحي - مجموعة أحياء - مرحلة ثانية", category: "فئة ثانية", code: "P1346", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1347", region: "القصيم - عنيزة", name: "مشروع انشاء شبكات صرف صحي - حي (الوفاء - الحمراء - النصور - الاسكان - المحمدية) - مرحلة ثانية", category: "فئة ثانية", code: "P1347", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1349", region: "القصيم - رياض الخبراء", name: "مشروع انشاء شبكات صرف صحي - حي طيبة + بعض من أجزاء حي الخندق", category: "فئة ثانية", code: "P1349", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1350", region: "القصيم - رياض الخبراء", name: "مشروع انشاء شبكات صرف صحي - حي (الأندلس - الفلاح - الخندق) - مرحلة ثانية", category: "فئة ثانية", code: "P1350", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1353", region: "القصيم - الرس", name: "مشروع انشاء شبكات صرف صحي - حي (الشنانة الشمالي - الصناعية - الورود - المروج) - مرحلة ثانية", category: "فئة ثانية", code: "P1353", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1354", region: "القصيم - الرس", name: "مشروع انشاء شبكات صرف صحي - حي (الرحاب - المنار - التعليم) جنوب الرس", category: "فئة ثانية", code: "P1354", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1383", region: "القصيم - بريدة", name: "مشروع انشاء شبكات صرف صحي ومحطات ضخ - حي الهدية - عقد رقم (3)", category: "فئة ثانية", code: "P1383", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P1385", region: "القصيم - بريدة", name: "مشروع انشاء شبكات صرف صحي - حي (حويلان - المريديسية - العريمضي)", category: "فئة ثانية", code: "P1385", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "A11", region: "القصيم - البكيرية، عنيزة، البدائع", name: "مشروع انشاء شبكات صرف صحي - مرحلة ثانية", category: "فئة ثانية", code: "A11", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" },
+          { id: "P585", region: "الجوف - سكاكا", name: "مشروع انشاء شبكات صرف صحي - مرحلة ثامنة", category: "فئة ثانية", code: "P585", request_number: "", status: "لم يصدر", issue_date: "", expiry_date: "", link: "" }
+        ];
+        projects = sampleData;
+        saveToLocalStorage();
+      }
+
+      renderApp();
+      
+      if (useDataSDK && window.dataSdk) {
+        const initResult = await window.dataSdk.init(dataHandler);
+        if (!initResult.isOk) {
+          showToast('فشل في تهيئة النظام', 'error');
+          return;
+        }
+        
+        // Auto-load data silently on first use
+        setTimeout(async () => {
+          if (projects.length === 0) {
+            await loadInitialData();
+            isInitialLoad = false;
+          }
+        }, 500);
+      }
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b73aed015dbed2b',t:'MTc2NzI4Nzk3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
