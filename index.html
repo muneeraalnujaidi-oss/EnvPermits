@@ -511,115 +511,22 @@
       }
     };
 
-    async function loadInitialData() {
-      if (isLoadingInitialData) return;
-      
-      isLoadingInitialData = true;
-      renderApp();
+async function loadInitialData() {
+  if (isLoadingInitialData) return;
+  isLoadingInitialData = true;
+  renderApp();
+  showToast('جاري تحميل التصاريح...', 'success');
 
-      showToast('جاري تحميل التصاريح...', 'success');
-      
-      let successCount = 0;
-      for (const project of initialProjects) {
-        const result = await window.dataSdk.create(project);
-        if (result.isOk) {
-          successCount++;
-        } else {
-          console.error("Failed to add project:", project.name);
-        }
-      }
-      
-      isLoadingInitialData = false;
-      
-      if (successCount > 0) {
-        showToast(`تم تحميل ${successCount} تصريح بنجاح! ✅`, 'success');
-      } else {
-        showToast('حدث خطأ أثناء التحميل', 'error');
-      }
-    }
+  // تحميل البيانات محلياً مباشرة بدون dataSdk
+  allProjects = initialProjects.map(project => ({
+    ...project,
+    __backendId: project.id // للتوافق مع الكود القديم
+  }));
 
-    function getFilteredProjects() {
-      let filtered = allProjects;
-
-      if (currentFilter !== 'all') {
-        filtered = filtered.filter(p => p.status === currentFilter);
-      }
-
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(p => 
-          p.region.toLowerCase().includes(query) ||
-          p.name.toLowerCase().includes(query) ||
-          p.code.toLowerCase().includes(query) ||
-          (p.request_number && p.request_number.toLowerCase().includes(query))
-        );
-      }
-
-      return filtered;
-    }
-
-    function formatDate(dateString) {
-      if (!dateString) return '-';
-      const date = new Date(dateString);
-      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-      return date.toLocaleDateString('ar-SA', options);
-    }
-
-    function getDateStatus(expiryDateString) {
-      if (!expiryDateString) return '';
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const expiryDate = new Date(expiryDateString);
-      expiryDate.setHours(0, 0, 0, 0);
-      
-      const diffTime = expiryDate - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays < 0) {
-        return 'expired';
-      } else if (diffDays <= 90) {
-        return 'warning';
-      }
-      return 'valid';
-    }
-
-    function getCurrentDate() {
-      const now = new Date();
-      const options = { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        weekday: 'long'
-      };
-      return now.toLocaleDateString('ar-SA', options);
-    }
-
-    function getCurrentTime() {
-      const now = new Date();
-      return now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
-    }
-
-    async function handleAddProject() {
-      if (allProjects.length >= 999) {
-        showToast('تم الوصول للحد الأقصى (999 تصريح)', 'error');
-        return;
-      }
-      editingProject = null;
-      showModal = true;
-      renderApp();
+  isLoadingInitialData = false;
+  showToast(`تم تحميل ${allProjects.length} تصريح بنجاح! ✅`, 'success');
+  renderApp();
+}
     }
 
     async function handleEditProject(project) {
@@ -1171,6 +1078,8 @@
     }
 
     init();
+   loadInitialData(); // تحميل التصاريح تلقائياً عند فتح الصفحة
   </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b72161ae1a15267',t:'MTc2NzI3MTIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
 </html>
